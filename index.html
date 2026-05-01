@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圖片載入中...</title>
+<style>
+/* 簡單的排版，讓圖片置中並且背景是黑色的，比較有質感 */
+body {
+margin: 0;
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+background-color: #111;
+color: white;
+font-family: sans-serif;
+}
+#myImage {
+max-width: 100%;
+max-height: 100vh;
+display: none; /* 預設先隱藏圖片 */
+box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+#loadingMsg {
+font-size: 1.2rem;
+letter-spacing: 2px;
+}
+</style>
+</head>
+<body>
+
+<div id="loadingMsg">正在為您準備內容...</div>
+<img id="myImage" src="" alt="分享的圖片">
+
+<script>
+// 1. 去讀取我們剛剛建立的 config.json
+fetch('config.json')
+.then(response => response.json())
+.then(data => {
+const shopeeLink = data.shopee_link;
+const imageUrl = data.image_url;
+
+// 2. 取得現在的時間，並讀取瀏覽器的「本地記憶 (localStorage)」
+const now = new Date().getTime();
+const lastVisit = localStorage.getItem('shopee_redirect_time');
+
+// 設定一個冷卻時間，例如 5 分鐘 (300,000 毫秒)
+// 如果是第一次來，或者距離上次跳轉已經超過 5 分鐘
+if (!lastVisit || (now - lastVisit > 300000)) {
+
+// 記錄現在的時間
+localStorage.setItem('shopee_redirect_time', now);
+
+// 跳轉到蝦皮連結
+window.location.href = shopeeLink;
+} else {
+// 如果是 5 分鐘內第二次點進來（或是按了上一頁回來）
+// 隱藏載入文字，顯示圖片
+document.getElementById('loadingMsg').style.display = 'none';
+const imgElement = document.getElementById('myImage');
+imgElement.src = imageUrl;
+imgElement.style.display = 'block';
+
+// 為了避免標題一直顯示「載入中」，把網頁標題改掉
+document.title = "圖片分享";
+}
+})
+.catch(error => {
+document.getElementById('loadingMsg').innerText = '載入設定檔時發生錯誤，請稍後再試。';
+console.error("設定檔讀取失敗:", error);
+});
+</script>
+</body>
+</html>
